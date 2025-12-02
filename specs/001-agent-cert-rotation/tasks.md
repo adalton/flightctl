@@ -76,8 +76,8 @@ Flight Control uses the following structure:
 - [X] T020 [P] [US1] Implement CSR generation for renewal in internal/agent/device/certrotation/renewer.go
 - [ ] T021 [US1] Integrate monitor with agent status update cycle in internal/agent/device/status/status.go
 - [ ] T022 [US1] Implement retry queue for renewal requests in internal/agent/device/certrotation/retry.go
-- [ ] T023 [P] [US1] Implement renewal endpoint handler in internal/service/certrotation/handler.go
-- [ ] T024 [P] [US1] Implement security proof validator for valid certificates in internal/service/certrotation/validator.go
+- [X] T023 [P] [US1] Implement renewal endpoint handler in internal/service/certrotation/handler.go
+- [X] T024 [P] [US1] Implement security proof validator for valid certificates in internal/service/certrotation/validator.go
 - [ ] T025 [US1] Implement certificate issuer in internal/service/certrotation/issuer.go
 - [ ] T026 [US1] Register renewal endpoint in API router internal/api/v1beta1/router.go
 - [ ] T027 [US1] Add renewal request/response models to internal/api/v1beta1/models.go
