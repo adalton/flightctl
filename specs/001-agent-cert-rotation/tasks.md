@@ -82,9 +82,9 @@ Flight Control uses the following structure:
 - [X] T026 [US1] Register renewal endpoint in API router internal/api/v1beta1/router.go
 - [ ] T027 [US1] Add renewal request/response models to internal/api/v1beta1/models.go
 - [X] T028 [US1] Update OpenAPI specification in internal/api/v1beta1/openapi.yaml
-- [ ] T029 [US1] Add tracing for renewal operations in internal/agent/device/certrotation/renewer.go
-- [ ] T030 [US1] Add metrics emission for renewal attempts in internal/agent/device/certrotation/monitor.go
-- [ ] T031 [US1] Add structured logging for renewal lifecycle in internal/agent/device/certrotation/renewer.go
+- [X] T029 [US1] Add tracing for renewal operations in internal/agent/device/certrotation/renewer.go
+- [X] T030 [US1] Add metrics emission for renewal attempts in internal/agent/device/certrotation/monitor.go
+- [X] T031 [US1] Add structured logging for renewal lifecycle in internal/agent/device/certrotation/renewer.go
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently. Devices proactively renew certificates before expiration.
 

@@ -143,7 +143,7 @@ func TestMonitorLoadCertificateMetadata(t *testing.T) {
 	log.SetLevel(logrus.ErrorLevel) // Reduce noise in tests
 
 	renewalChan := make(chan RenewalTrigger, 1)
-	monitor := NewMonitor(cfg, log, certPath, renewalChan)
+	monitor := NewMonitor(cfg, log, certPath, renewalChan, nil)
 
 	// Load certificate metadata
 	metadata, err := monitor.loadCertificateMetadata()
@@ -178,7 +178,7 @@ func TestMonitorCheckExpirationTriggersRenewal(t *testing.T) {
 	log.SetLevel(logrus.ErrorLevel)
 
 	renewalChan := make(chan RenewalTrigger, 1)
-	monitor := NewMonitor(cfg, log, certPath, renewalChan)
+	monitor := NewMonitor(cfg, log, certPath, renewalChan, nil)
 
 	// Check expiration - should trigger renewal
 	ctx := context.Background()
@@ -216,7 +216,7 @@ func TestMonitorCheckExpirationNoRenewalNeeded(t *testing.T) {
 	log.SetLevel(logrus.ErrorLevel)
 
 	renewalChan := make(chan RenewalTrigger, 1)
-	monitor := NewMonitor(cfg, log, certPath, renewalChan)
+	monitor := NewMonitor(cfg, log, certPath, renewalChan, nil)
 
 	// Check expiration - should NOT trigger renewal
 	ctx := context.Background()

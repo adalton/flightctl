@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/flightctl/flightctl/internal/agent/config"
+	"github.com/flightctl/flightctl/internal/agent/instrumentation/metrics"
 	"github.com/flightctl/flightctl/pkg/crypto"
 	"github.com/sirupsen/logrus"
 )
@@ -22,6 +23,7 @@ type Monitor struct {
 	renewalChan chan<- RenewalTrigger
 	stopChan    chan struct{}
 	checkTicker *time.Ticker
+	metrics     *metrics.CertRotationMetrics
 }
 
 // RenewalTrigger contains information about why renewal was triggered
@@ -32,13 +34,14 @@ type RenewalTrigger struct {
 }
 
 // NewMonitor creates a new certificate expiration monitor
-func NewMonitor(cfg *config.Config, log *logrus.Logger, certPath string, renewalChan chan<- RenewalTrigger) *Monitor {
+func NewMonitor(cfg *config.Config, log *logrus.Logger, certPath string, renewalChan chan<- RenewalTrigger, metricsCollector *metrics.CertRotationMetrics) *Monitor {
 	return &Monitor{
 		config:      cfg,
 		log:         log,
 		certPath:    certPath,
 		renewalChan: renewalChan,
 		stopChan:    make(chan struct{}),
+		metrics:     metricsCollector,
 	}
 }
 
@@ -87,6 +90,11 @@ func (m *Monitor) checkCertificateExpiration(ctx context.Context) error {
 		return fmt.Errorf("loading certificate metadata: %w", err)
 	}
 
+	// Emit certificate expiration time metric
+	if m.metrics != nil {
+		m.metrics.CertExpirationTime.Set(float64(metadata.NotAfter.Unix()))
+	}
+
 	timeToExpiry := time.Until(metadata.NotAfter)
 	thresholdDays := m.config.CertRotation.RenewalThresholdDays
 	if thresholdDays == 0 {
@@ -102,6 +110,11 @@ func (m *Monitor) checkCertificateExpiration(ctx context.Context) error {
 	}).Debug("Certificate expiration check")
 
 	if ShouldRenew(metadata.NotAfter, thresholdDays) {
+		// Increment renewal attempt counter
+		if m.metrics != nil {
+			m.metrics.RenewalAttempts.Inc()
+		}
+
 		trigger := RenewalTrigger{
 			CertMetadata: metadata,
 			Reason:       fmt.Sprintf("Certificate expires in %v (threshold: %d days)", timeToExpiry, thresholdDays),
@@ -110,14 +123,23 @@ func (m *Monitor) checkCertificateExpiration(ctx context.Context) error {
 
 		select {
 		case m.renewalChan <- trigger:
+			// Structured logging: certificate.expiration.detected
 			m.log.WithFields(logrus.Fields{
-				"serial":         metadata.SerialNumber,
-				"time_to_expiry": timeToExpiry,
-			}).Info("Certificate renewal triggered")
+				"event":          "certificate.expiration.detected",
+				"cert_serial":    metadata.SerialNumber,
+				"not_after":      metadata.NotAfter.Format(time.RFC3339),
+				"time_to_expiry": timeToExpiry.String(),
+				"threshold_days": thresholdDays,
+			}).Info("Certificate expiring soon - renewal triggered")
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			m.log.Warn("Renewal channel full, skipping trigger (renewal may already be in progress)")
+			m.log.WithFields(logrus.Fields{
+				"event":          "certificate.renewal.skipped",
+				"cert_serial":    metadata.SerialNumber,
+				"reason":         "renewal_channel_full",
+				"time_to_expiry": timeToExpiry.String(),
+			}).Warn("Renewal channel full, skipping trigger (renewal may already be in progress)")
 		}
 	}
 
