@@ -3,14 +3,11 @@ package certrotation
 import (
 	"context"
 	"crypto/x509"
-	"encoding/hex"
-	"encoding/pem"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/flightctl/flightctl/internal/crypto"
-	"github.com/flightctl/flightctl/internal/crypto/signer"
 	"github.com/flightctl/flightctl/internal/store"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -52,8 +49,8 @@ type ErrorResponse struct {
 // Handler handles certificate renewal requests
 type Handler struct {
 	store     store.Store
-	ca        *crypto.CAClient
 	validator *Validator
+	issuer    *CertificateIssuer
 	log       *logrus.Logger
 }
 
@@ -61,8 +58,8 @@ type Handler struct {
 func NewHandler(store store.Store, ca *crypto.CAClient, validator *Validator, log *logrus.Logger) *Handler {
 	return &Handler{
 		store:     store,
-		ca:        ca,
 		validator: validator,
+		issuer:    NewCertificateIssuer(ca, log),
 		log:       log,
 	}
 }
@@ -121,7 +118,7 @@ func (h *Handler) HandleRenewalRequest(ctx context.Context, deviceID string, req
 	}
 
 	// Issue new certificate
-	cert, err := h.issueCertificate(ctx, csr, deviceID)
+	cert, err := h.issuer.IssueCertificate(ctx, csr, deviceID)
 	if err != nil {
 		// Update database record with error
 		dbRecord.Status = "failed"
@@ -137,7 +134,7 @@ func (h *Handler) HandleRenewalRequest(ctx context.Context, deviceID string, req
 
 	// Update database record with success
 	dbRecord.Status = "completed"
-	dbRecord.NewCertificateSerial = hex.EncodeToString(cert.Certificate.SerialNumber.Bytes())
+	dbRecord.NewCertificateSerial = cert.SerialNumber
 	dbRecord.NewCertificatePEM = string(cert.CertificatePEM)
 	dbRecord.ProcessingDurationMS = int(time.Since(startTime).Milliseconds())
 	completionTime := time.Now()
@@ -159,69 +156,11 @@ func (h *Handler) HandleRenewalRequest(ctx context.Context, deviceID string, req
 		RequestID:    req.RequestID,
 		Status:       "completed",
 		Certificate:  string(cert.CertificatePEM),
-		SerialNumber: dbRecord.NewCertificateSerial,
+		SerialNumber: cert.SerialNumber,
 		NotBefore:    cert.Certificate.NotBefore,
 		NotAfter:     cert.Certificate.NotAfter,
 		IssuedAt:     completionTime,
 	}
 
 	return response, http.StatusOK, nil
-}
-
-// IssuedCertificate represents a newly issued certificate
-type IssuedCertificate struct {
-	Certificate    *x509.Certificate
-	CertificatePEM []byte
-}
-
-// issueCertificate issues a new certificate based on the CSR
-func (h *Handler) issueCertificate(ctx context.Context, csr *x509.CertificateRequest, deviceID string) (*IssuedCertificate, error) {
-	// Encode CSR to PEM format for the signer
-	csrDER := csr.Raw
-	csrPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE REQUEST",
-		Bytes: csrDER,
-	})
-
-	// Create sign request using the signer library
-	// Use ClientBootstrapSignerName for certificate renewal (same as bootstrap enrollment)
-	signReq, err := signer.NewSignRequestFromBytes(
-		h.ca.Cfg.ClientBootstrapSignerName,
-		csrPEM,
-		signer.WithResourceName(deviceID),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("creating sign request: %w", err)
-	}
-
-	// Sign the certificate
-	certPEM, err := signer.SignAsPEM(ctx, h.ca, signReq)
-	if err != nil {
-		return nil, fmt.Errorf("signing certificate: %w", err)
-	}
-
-	// Parse the signed certificate to extract metadata
-	cert, ok := signReq.IssuedCertificate()
-	if !ok {
-		// If not available from sign request, parse from PEM
-		block, _ := pem.Decode(certPEM)
-		if block == nil {
-			return nil, fmt.Errorf("failed to decode certificate PEM")
-		}
-		cert, err = x509.ParseCertificate(block.Bytes)
-		if err != nil {
-			return nil, fmt.Errorf("parsing signed certificate: %w", err)
-		}
-	}
-
-	h.log.WithFields(logrus.Fields{
-		"device_id": deviceID,
-		"serial":    hex.EncodeToString(cert.SerialNumber.Bytes()),
-		"not_after": cert.NotAfter,
-	}).Debug("Certificate issued successfully")
-
-	return &IssuedCertificate{
-		Certificate:    cert,
-		CertificatePEM: certPEM,
-	}, nil
 }

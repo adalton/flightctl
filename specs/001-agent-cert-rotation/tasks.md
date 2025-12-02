@@ -75,13 +75,13 @@ Flight Control uses the following structure:
 - [X] T019 [P] [US1] Implement certificate expiration monitor in internal/agent/device/certrotation/monitor.go
 - [X] T020 [P] [US1] Implement CSR generation for renewal in internal/agent/device/certrotation/renewer.go
 - [ ] T021 [US1] Integrate monitor with agent status update cycle in internal/agent/device/status/status.go
-- [ ] T022 [US1] Implement retry queue for renewal requests in internal/agent/device/certrotation/retry.go
+- [X] T022 [US1] Implement retry queue for renewal requests in internal/agent/device/certrotation/retry.go
 - [X] T023 [P] [US1] Implement renewal endpoint handler in internal/service/certrotation/handler.go
 - [X] T024 [P] [US1] Implement security proof validator for valid certificates in internal/service/certrotation/validator.go
-- [ ] T025 [US1] Implement certificate issuer in internal/service/certrotation/issuer.go
-- [ ] T026 [US1] Register renewal endpoint in API router internal/api/v1beta1/router.go
+- [X] T025 [US1] Implement certificate issuer in internal/service/certrotation/issuer.go
+- [X] T026 [US1] Register renewal endpoint in API router internal/api/v1beta1/router.go
 - [ ] T027 [US1] Add renewal request/response models to internal/api/v1beta1/models.go
-- [ ] T028 [US1] Update OpenAPI specification in internal/api/v1beta1/openapi.yaml
+- [X] T028 [US1] Update OpenAPI specification in internal/api/v1beta1/openapi.yaml
 - [ ] T029 [US1] Add tracing for renewal operations in internal/agent/device/certrotation/renewer.go
 - [ ] T030 [US1] Add metrics emission for renewal attempts in internal/agent/device/certrotation/monitor.go
 - [ ] T031 [US1] Add structured logging for renewal lifecycle in internal/agent/device/certrotation/renewer.go
