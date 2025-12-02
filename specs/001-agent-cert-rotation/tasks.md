@@ -67,13 +67,13 @@ Flight Control uses the following structure:
 
 - [ ] T015 [P] [US1] Write contract test for renewal endpoint in test/contract/certrotation_contract_test.go
 - [ ] T016 [P] [US1] Write integration test for proactive renewal flow in test/integration/certrotation/renewal_test.go
-- [ ] T017 [P] [US1] Write unit test for expiration calculation in internal/agent/device/certrotation/monitor_test.go
+- [X] T017 [P] [US1] Write unit test for expiration calculation in internal/agent/device/certrotation/monitor_test.go
 - [ ] T018 [P] [US1] Write integration test for network interruption retry in test/integration/certrotation/retry_test.go
 
 ### Implementation for User Story 1
 
-- [ ] T019 [P] [US1] Implement certificate expiration monitor in internal/agent/device/certrotation/monitor.go
-- [ ] T020 [P] [US1] Implement CSR generation for renewal in internal/agent/device/certrotation/renewer.go
+- [X] T019 [P] [US1] Implement certificate expiration monitor in internal/agent/device/certrotation/monitor.go
+- [X] T020 [P] [US1] Implement CSR generation for renewal in internal/agent/device/certrotation/renewer.go
 - [ ] T021 [US1] Integrate monitor with agent status update cycle in internal/agent/device/status/status.go
 - [ ] T022 [US1] Implement retry queue for renewal requests in internal/agent/device/certrotation/retry.go
 - [ ] T023 [P] [US1] Implement renewal endpoint handler in internal/service/certrotation/handler.go
