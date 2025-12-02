@@ -143,6 +143,11 @@ var APIMetadataMap = map[string]EndpointMetadata{
 		Resource:    "",
 		Action:      "",
 	},
+	"POST:/api/v1/devices/{name}/certificaterenewal": {
+		OperationID: "renewDeviceCertificate",
+		Resource:    "",
+		Action:      "",
+	},
 	"PUT:/api/v1/devices/{name}/decommission": {
 		OperationID: "decommissionDevice",
 		Resource:    "",

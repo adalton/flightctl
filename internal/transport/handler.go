@@ -1,6 +1,8 @@
 package transport
 
 import (
+	"net/http"
+
 	"github.com/flightctl/flightctl/internal/api/server"
 	"github.com/flightctl/flightctl/internal/auth"
 	"github.com/flightctl/flightctl/internal/auth/common"
@@ -44,6 +46,11 @@ func NewWebsocketHandler(ca *crypto.CAClient, log logrus.FieldLogger, consoleSes
 		log:                   log,
 		consoleSessionManager: consoleSessionManager,
 	}
+}
+
+// RenewDeviceCertificate handles certificate renewal requests from devices
+func (h *TransportHandler) RenewDeviceCertificate(w http.ResponseWriter, r *http.Request, name string) {
+	h.serviceHandler.RenewDeviceCertificate(w, r, name)
 }
 
 func (h *WebsocketHandler) RegisterRoutes(r chi.Router) {

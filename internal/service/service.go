@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	api "github.com/flightctl/flightctl/api/v1beta1"
@@ -35,6 +36,7 @@ type Service interface {
 	GetRenderedDevice(ctx context.Context, orgId uuid.UUID, name string, params api.GetRenderedDeviceParams) (*api.Device, api.Status)
 	PatchDevice(ctx context.Context, orgId uuid.UUID, name string, patch api.PatchRequest) (*api.Device, api.Status)
 	DecommissionDevice(ctx context.Context, orgId uuid.UUID, name string, decom api.DeviceDecommission) (*api.Device, api.Status)
+	RenewDeviceCertificate(w http.ResponseWriter, r *http.Request, name string)
 
 	ResumeDevices(ctx context.Context, orgId uuid.UUID, request api.DeviceResumeRequest) (api.DeviceResumeResponse, api.Status)
 	UpdateDeviceAnnotations(ctx context.Context, orgId uuid.UUID, name string, annotations map[string]string, deleteKeys []string) api.Status

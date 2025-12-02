@@ -5,6 +5,7 @@ package service
 import (
 	"context"
 	"errors"
+	"net/http"
 	"time"
 
 	api "github.com/flightctl/flightctl/api/v1beta1"
@@ -676,4 +677,8 @@ func (t *TracedService) GetAuthConfig(ctx context.Context, authConfig *api.AuthC
 	resp, st := t.inner.GetAuthConfig(ctx, authConfig)
 	endSpan(span, st)
 	return resp, st
+}
+
+func (t *TracedService) RenewDeviceCertificate(w http.ResponseWriter, r *http.Request, name string) {
+	t.inner.RenewDeviceCertificate(w, r, name)
 }

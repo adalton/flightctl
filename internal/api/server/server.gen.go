@@ -90,6 +90,9 @@ type ServerInterface interface {
 	// (PUT /api/v1/devices/{name})
 	ReplaceDevice(w http.ResponseWriter, r *http.Request, name string)
 
+	// (POST /api/v1/devices/{name}/certificaterenewal)
+	RenewDeviceCertificate(w http.ResponseWriter, r *http.Request, name string)
+
 	// (PUT /api/v1/devices/{name}/decommission)
 	DecommissionDevice(w http.ResponseWriter, r *http.Request, name string)
 
@@ -352,6 +355,11 @@ func (_ Unimplemented) PatchDevice(w http.ResponseWriter, r *http.Request, name 
 
 // (PUT /api/v1/devices/{name})
 func (_ Unimplemented) ReplaceDevice(w http.ResponseWriter, r *http.Request, name string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /api/v1/devices/{name}/certificaterenewal)
+func (_ Unimplemented) RenewDeviceCertificate(w http.ResponseWriter, r *http.Request, name string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1255,6 +1263,32 @@ func (siw *ServerInterfaceWrapper) ReplaceDevice(w http.ResponseWriter, r *http.
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ReplaceDevice(w, r, name)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// RenewDeviceCertificate operation middleware
+func (siw *ServerInterfaceWrapper) RenewDeviceCertificate(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "name" -------------
+	var name string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "name", chi.URLParam(r, "name"), &name, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "name", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RenewDeviceCertificate(w, r, name)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2816,6 +2850,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Put(options.BaseURL+"/api/v1/devices/{name}", wrapper.ReplaceDevice)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/api/v1/devices/{name}/certificaterenewal", wrapper.RenewDeviceCertificate)
 	})
 	r.Group(func(r chi.Router) {
 		r.Put(options.BaseURL+"/api/v1/devices/{name}/decommission", wrapper.DecommissionDevice)

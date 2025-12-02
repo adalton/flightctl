@@ -80,7 +80,7 @@ Flight Control uses the following structure:
 - [X] T024 [P] [US1] Implement security proof validator for valid certificates in internal/service/certrotation/validator.go
 - [X] T025 [US1] Implement certificate issuer in internal/service/certrotation/issuer.go
 - [X] T026 [US1] Register renewal endpoint in API router internal/api/v1beta1/router.go
-- [ ] T027 [US1] Add renewal request/response models to internal/api/v1beta1/models.go
+- [X] T027 [US1] Add renewal request/response models to internal/api/v1beta1/models.go
 - [X] T028 [US1] Update OpenAPI specification in internal/api/v1beta1/openapi.yaml
 - [X] T029 [US1] Add tracing for renewal operations in internal/agent/device/certrotation/renewer.go
 - [X] T030 [US1] Add metrics emission for renewal attempts in internal/agent/device/certrotation/monitor.go

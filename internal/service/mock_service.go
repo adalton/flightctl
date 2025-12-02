@@ -11,6 +11,7 @@ package service
 
 import (
 	context "context"
+	http "net/http"
 	reflect "reflect"
 	time "time"
 
@@ -1513,4 +1514,16 @@ func (m *MockService) UpdateServiceSideDeviceStatus(ctx context.Context, orgId u
 func (mr *MockServiceMockRecorder) UpdateServiceSideDeviceStatus(ctx, orgId, device any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateServiceSideDeviceStatus", reflect.TypeOf((*MockService)(nil).UpdateServiceSideDeviceStatus), ctx, orgId, device)
+}
+
+// RenewDeviceCertificate mocks base method.
+func (m *MockService) RenewDeviceCertificate(w http.ResponseWriter, r *http.Request, name string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "RenewDeviceCertificate", w, r, name)
+}
+
+// RenewDeviceCertificate indicates an expected call of RenewDeviceCertificate.
+func (mr *MockServiceMockRecorder) RenewDeviceCertificate(w, r, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RenewDeviceCertificate", reflect.TypeOf((*MockService)(nil).RenewDeviceCertificate), w, r, name)
 }

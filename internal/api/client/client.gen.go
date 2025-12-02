@@ -191,6 +191,11 @@ type ClientInterface interface {
 
 	ReplaceDevice(ctx context.Context, name string, body ReplaceDeviceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// RenewDeviceCertificateWithBody request with any body
+	RenewDeviceCertificateWithBody(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RenewDeviceCertificate(ctx context.Context, name string, body RenewDeviceCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// DecommissionDeviceWithBody request with any body
 	DecommissionDeviceWithBody(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -813,6 +818,30 @@ func (c *Client) ReplaceDeviceWithBody(ctx context.Context, name string, content
 
 func (c *Client) ReplaceDevice(ctx context.Context, name string, body ReplaceDeviceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewReplaceDeviceRequest(c.Server, name, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RenewDeviceCertificateWithBody(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRenewDeviceCertificateRequestWithBody(c.Server, name, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RenewDeviceCertificate(ctx context.Context, name string, body RenewDeviceCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRenewDeviceCertificateRequest(c.Server, name, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2775,6 +2804,53 @@ func NewReplaceDeviceRequestWithBody(server string, name string, contentType str
 	}
 
 	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewRenewDeviceCertificateRequest calls the generic RenewDeviceCertificate builder with application/json body
+func NewRenewDeviceCertificateRequest(server string, name string, body RenewDeviceCertificateJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRenewDeviceCertificateRequestWithBody(server, name, "application/json", bodyReader)
+}
+
+// NewRenewDeviceCertificateRequestWithBody generates requests for RenewDeviceCertificate with any type of body
+func NewRenewDeviceCertificateRequestWithBody(server string, name string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/devices/%s/certificaterenewal", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -5231,6 +5307,11 @@ type ClientWithResponsesInterface interface {
 
 	ReplaceDeviceWithResponse(ctx context.Context, name string, body ReplaceDeviceJSONRequestBody, reqEditors ...RequestEditorFn) (*ReplaceDeviceResponse, error)
 
+	// RenewDeviceCertificateWithBodyWithResponse request with any body
+	RenewDeviceCertificateWithBodyWithResponse(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RenewDeviceCertificateResponse, error)
+
+	RenewDeviceCertificateWithResponse(ctx context.Context, name string, body RenewDeviceCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*RenewDeviceCertificateResponse, error)
+
 	// DecommissionDeviceWithBodyWithResponse request with any body
 	DecommissionDeviceWithBodyWithResponse(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DecommissionDeviceResponse, error)
 
@@ -6087,6 +6168,35 @@ func (r ReplaceDeviceResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ReplaceDeviceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RenewDeviceCertificateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *CertificateRenewalResponse
+	JSON400      *Status
+	JSON401      *Status
+	JSON403      *Status
+	JSON404      *Status
+	JSON429      *Status
+	JSON500      *Status
+	JSON503      *Status
+}
+
+// Status returns HTTPResponse.Status
+func (r RenewDeviceCertificateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RenewDeviceCertificateResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -7668,6 +7778,23 @@ func (c *ClientWithResponses) ReplaceDeviceWithResponse(ctx context.Context, nam
 		return nil, err
 	}
 	return ParseReplaceDeviceResponse(rsp)
+}
+
+// RenewDeviceCertificateWithBodyWithResponse request with arbitrary body returning *RenewDeviceCertificateResponse
+func (c *ClientWithResponses) RenewDeviceCertificateWithBodyWithResponse(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RenewDeviceCertificateResponse, error) {
+	rsp, err := c.RenewDeviceCertificateWithBody(ctx, name, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRenewDeviceCertificateResponse(rsp)
+}
+
+func (c *ClientWithResponses) RenewDeviceCertificateWithResponse(ctx context.Context, name string, body RenewDeviceCertificateJSONRequestBody, reqEditors ...RequestEditorFn) (*RenewDeviceCertificateResponse, error) {
+	rsp, err := c.RenewDeviceCertificate(ctx, name, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRenewDeviceCertificateResponse(rsp)
 }
 
 // DecommissionDeviceWithBodyWithResponse request with arbitrary body returning *DecommissionDeviceResponse
@@ -9824,6 +9951,81 @@ func ParseReplaceDeviceResponse(rsp *http.Response) (*ReplaceDeviceResponse, err
 			return nil, err
 		}
 		response.JSON429 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest Status
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRenewDeviceCertificateResponse parses an HTTP response from a RenewDeviceCertificateWithResponse call
+func ParseRenewDeviceCertificateResponse(rsp *http.Response) (*RenewDeviceCertificateResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RenewDeviceCertificateResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest CertificateRenewalResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest Status
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Status
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Status
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest Status
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest Status
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest Status
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
 		var dest Status
