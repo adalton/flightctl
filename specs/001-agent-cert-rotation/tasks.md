@@ -27,12 +27,12 @@ Flight Control uses the following structure:
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create agent-side package structure in internal/agent/device/certrotation/
-- [ ] T002 Create service-side package structure in internal/service/certrotation/
-- [ ] T003 [P] Add certificate rotation configuration to internal/agent/config/config.go
-- [ ] T004 [P] Create database migration file db/migrations/YYYYMMDDHHMMSS_add_cert_renewal.sql
-- [ ] T005 [P] Create integration test directory test/integration/certrotation/
-- [ ] T006 [P] Create contract test file test/contract/certrotation_contract_test.go
+- [X] T001 Create agent-side package structure in internal/agent/device/certrotation/
+- [X] T002 Create service-side package structure in internal/service/certrotation/
+- [X] T003 [P] Add certificate rotation configuration to internal/agent/config/config.go
+- [X] T004 [P] Create database migration file db/migrations/20251202133504_add_cert_renewal.sql
+- [X] T005 [P] Create integration test directory test/integration/certrotation/
+- [X] T006 [P] Create contract test file test/contract/certrotation_contract_test.go
 
 ---
 
