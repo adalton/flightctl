@@ -1,0 +1,333 @@
+openapi: 3.0.3
+info:
+  title: Flight Control Certificate Renewal API
+  description: |
+    API endpoint for automatic certificate renewal and expired certificate recovery.
+
+    This endpoint allows devices to renew their management certificates before expiration
+    or recover from expired certificates using bootstrap credentials or TPM attestation.
+  version: 1.0.0
+  contact:
+    name: Flight Control Team
+    url: https://github.com/flightctl/flightctl
+
+servers:
+  - url: https://{server}:{port}/api/v1beta1
+    description: Flight Control API Server
+    variables:
+      server:
+        default: localhost
+      port:
+        default: '7443'
+
+paths:
+  /devices/{name}/certificaterenewal:
+    post:
+      summary: Request certificate renewal
+      description: |
+        Request a new management certificate for a device. This endpoint supports three authentication methods:
+
+        1. **Valid Certificate**: Device presents current (not expired) management certificate
+        2. **Bootstrap Certificate**: Device presents valid bootstrap/enrollment certificate (fallback for expired management cert)
+        3. **TPM Attestation**: Device provides TPM attestation proof (fallback when both certificates expired)
+
+        The service validates the security proof, issues a new certificate with 365-day validity,
+        and returns it to the device for atomic swap.
+      operationId: renewDeviceCertificate
+      tags:
+        - Devices
+        - Certificates
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Device identifier (must match certificate subject)
+          schema:
+            type: string
+            pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+            example: edge-device-001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CertificateRenewalRequest'
+            examples:
+              validCertRenewal:
+                summary: Renewal with valid management certificate
+                value:
+                  requestId: "123e4567-e89b-12d3-a456-426614174000"
+                  csr: "-----BEGIN CERTIFICATE REQUEST-----\nMIICvDCCAaQCAQAw...\n-----END CERTIFICATE REQUEST-----"
+                  securityProofType: "valid_cert"
+                  oldCertificateSerial: "1A2B3C4D5E6F"
+              bootstrapCertRenewal:
+                summary: Recovery with bootstrap certificate
+                value:
+                  requestId: "223e4567-e89b-12d3-a456-426614174001"
+                  csr: "-----BEGIN CERTIFICATE REQUEST-----\nMIICvDCCAaQCAQAw...\n-----END CERTIFICATE REQUEST-----"
+                  securityProofType: "bootstrap_cert"
+                  oldCertificateSerial: "7G8H9I0J1K2L"
+              tpmAttestation:
+                summary: Recovery with TPM attestation
+                value:
+                  requestId: "323e4567-e89b-12d3-a456-426614174002"
+                  csr: "-----BEGIN CERTIFICATE REQUEST-----\nMIICvDCCAaQCAQAw...\n-----END CERTIFICATE REQUEST-----"
+                  securityProofType: "tpm_attestation"
+                  tpmAttestationProof:
+                    attestationData: "base64encodedattestationdata"
+                    signature: "base64encodedsignature"
+                  oldCertificateSerial: "3M4N5O6P7Q8R"
+      responses:
+        '200':
+          description: Certificate renewed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateRenewalResponse'
+              example:
+                requestId: "123e4567-e89b-12d3-a456-426614174000"
+                status: "completed"
+                certificate: "-----BEGIN CERTIFICATE-----\nMIIDXTCCAkWgAwIBAgIJ...\n-----END CERTIFICATE-----"
+                serialNumber: "9S0T1U2V3W4X"
+                notBefore: "2025-12-02T10:00:00Z"
+                notAfter: "2026-12-02T10:00:00Z"
+                issuedAt: "2025-12-02T10:00:05Z"
+        '400':
+          description: Invalid request (malformed CSR, invalid security proof type, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidCSR:
+                  summary: Malformed CSR
+                  value:
+                    error: "Invalid CSR format"
+                    details: "Failed to parse PEM-encoded CSR"
+                    requestId: "123e4567-e89b-12d3-a456-426614174000"
+                invalidProofType:
+                  summary: Invalid security proof type
+                  value:
+                    error: "Invalid security proof type"
+                    details: "securityProofType must be one of: valid_cert, bootstrap_cert, tpm_attestation"
+                    requestId: "123e4567-e89b-12d3-a456-426614174000"
+        '401':
+          description: Authentication failed (invalid certificate, failed TPM attestation, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidBootstrap:
+                  summary: Bootstrap certificate validation failed
+                  value:
+                    error: "Authentication failed"
+                    details: "Bootstrap certificate signature verification failed"
+                    requestId: "223e4567-e89b-12d3-a456-426614174001"
+                tpmAttestationFailed:
+                  summary: TPM attestation validation failed
+                  value:
+                    error: "Authentication failed"
+                    details: "TPM attestation signature does not match device identity"
+                    requestId: "323e4567-e89b-12d3-a456-426614174002"
+        '403':
+          description: Device not authorized (revoked, not enrolled, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Device not authorized"
+                details: "Device edge-device-001 has been revoked"
+                requestId: "123e4567-e89b-12d3-a456-426614174000"
+        '404':
+          description: Device not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Device not found"
+                details: "No device with name edge-device-001"
+                requestId: "123e4567-e89b-12d3-a456-426614174000"
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Rate limit exceeded"
+                details: "Maximum renewal requests per minute exceeded. Retry after 60 seconds."
+                requestId: "123e4567-e89b-12d3-a456-426614174000"
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying
+              schema:
+                type: integer
+                example: 60
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Internal server error"
+                details: "Certificate issuance failed: CA service unavailable"
+                requestId: "123e4567-e89b-12d3-a456-426614174000"
+        '503':
+          description: Service unavailable (maintenance, overload, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Service unavailable"
+                details: "Certificate authority service is temporarily unavailable"
+                requestId: "123e4567-e89b-12d3-a456-426614174000"
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying
+              schema:
+                type: integer
+                example: 300
+
+components:
+  schemas:
+    CertificateRenewalRequest:
+      type: object
+      required:
+        - requestId
+        - csr
+        - securityProofType
+      properties:
+        requestId:
+          type: string
+          format: uuid
+          description: Unique identifier for this renewal request (generated by agent)
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        csr:
+          type: string
+          description: PEM-encoded Certificate Signing Request (X.509 CSR or TCG CSR-IDEVID format)
+          example: "-----BEGIN CERTIFICATE REQUEST-----\nMIICvDCCAaQCAQAw...\n-----END CERTIFICATE REQUEST-----"
+        securityProofType:
+          type: string
+          enum:
+            - valid_cert
+            - bootstrap_cert
+            - tpm_attestation
+          description: |
+            Authentication method used for this renewal request:
+            - `valid_cert`: Using current valid management certificate (proactive renewal)
+            - `bootstrap_cert`: Using bootstrap/enrollment certificate (expired cert recovery)
+            - `tpm_attestation`: Using TPM attestation proof (both certs expired)
+          example: "valid_cert"
+        oldCertificateSerial:
+          type: string
+          description: Serial number of the certificate being renewed (hex-encoded, optional for audit)
+          example: "1A2B3C4D5E6F"
+        tpmAttestationProof:
+          $ref: '#/components/schemas/TPMAttestationProof'
+          description: TPM attestation proof (required if securityProofType is tpm_attestation)
+
+    TPMAttestationProof:
+      type: object
+      required:
+        - attestationData
+        - signature
+      properties:
+        attestationData:
+          type: string
+          format: byte
+          description: Base64-encoded TPM attestation data (includes device identity, nonce, timestamp)
+          example: "YXR0ZXN0YXRpb25kYXRh..."
+        signature:
+          type: string
+          format: byte
+          description: Base64-encoded signature of attestation data signed by TPM AIK
+          example: "c2lnbmF0dXJl..."
+
+    CertificateRenewalResponse:
+      type: object
+      required:
+        - requestId
+        - status
+        - certificate
+        - serialNumber
+        - notBefore
+        - notAfter
+        - issuedAt
+      properties:
+        requestId:
+          type: string
+          format: uuid
+          description: Request identifier (matches request)
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        status:
+          type: string
+          enum:
+            - completed
+          description: Renewal status (always 'completed' for successful response)
+          example: "completed"
+        certificate:
+          type: string
+          description: PEM-encoded X.509 certificate (new management certificate)
+          example: "-----BEGIN CERTIFICATE-----\nMIIDXTCCAkWgAwIBAgIJ...\n-----END CERTIFICATE-----"
+        serialNumber:
+          type: string
+          description: Serial number of the new certificate (hex-encoded)
+          example: "9S0T1U2V3W4X"
+        notBefore:
+          type: string
+          format: date-time
+          description: Certificate validity start time (ISO 8601)
+          example: "2025-12-02T10:00:00Z"
+        notAfter:
+          type: string
+          format: date-time
+          description: Certificate validity end time (ISO 8601, typically +365 days)
+          example: "2026-12-02T10:00:00Z"
+        issuedAt:
+          type: string
+          format: date-time
+          description: Timestamp when certificate was issued (ISO 8601)
+          example: "2025-12-02T10:00:05Z"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - requestId
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+          example: "Invalid CSR format"
+        details:
+          type: string
+          description: Detailed error information (for debugging)
+          example: "Failed to parse PEM-encoded CSR: invalid header"
+        requestId:
+          type: string
+          format: uuid
+          description: Request identifier (for correlation in logs)
+          example: "123e4567-e89b-12d3-a456-426614174000"
+
+  securitySchemes:
+    clientCertificate:
+      type: mutualTLS
+      description: |
+        Client certificate authentication. Devices use one of three certificate types:
+        - Management certificate (valid_cert): Current device certificate
+        - Bootstrap certificate (bootstrap_cert): Enrollment certificate
+        - No certificate (tpm_attestation): TPM attestation proof in request body
+
+security:
+  - clientCertificate: []
+
+tags:
+  - name: Devices
+    description: Device management operations
+  - name: Certificates
+    description: Certificate lifecycle management
