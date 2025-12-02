@@ -31,6 +31,7 @@ type Store interface {
 	Checkpoint() Checkpoint
 	Organization() Organization
 	AuthProvider() AuthProvider
+	CertRotation() CertRotation
 	RunMigrations(context.Context) error
 	CheckHealth(context.Context) error
 	Close() error
@@ -48,6 +49,7 @@ type DataStore struct {
 	checkpoint                Checkpoint
 	organization              Organization
 	authProvider              AuthProvider
+	certRotation              CertRotation
 
 	db *gorm.DB
 }
@@ -65,6 +67,7 @@ func NewStore(db *gorm.DB, log logrus.FieldLogger) Store {
 		checkpoint:                NewCheckpoint(db, log),
 		organization:              NewOrganization(db),
 		authProvider:              NewAuthProvider(db, log),
+		certRotation:              NewCertRotation(db, log),
 		db:                        db,
 	}
 }
@@ -111,6 +114,10 @@ func (s *DataStore) Organization() Organization {
 
 func (s *DataStore) AuthProvider() AuthProvider {
 	return s.authProvider
+}
+
+func (s *DataStore) CertRotation() CertRotation {
+	return s.certRotation
 }
 
 // CheckHealth verifies database connectivity and ensures the instance is not in recovery.

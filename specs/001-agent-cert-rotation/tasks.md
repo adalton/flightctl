@@ -42,14 +42,14 @@ Flight Control uses the following structure:
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T007 Apply database migration to create certificate_renewal_requests table
-- [ ] T008 [P] Implement CertificateMetadata type in internal/agent/device/certrotation/types.go
-- [ ] T009 [P] Implement RenewalRequest type in internal/agent/device/certrotation/types.go
-- [ ] T010 [P] Implement CertRotationConfig type in internal/agent/config/config.go
-- [ ] T011 [P] Implement CertificateRenewalRequest database entity in internal/service/store/certrotation.go
-- [ ] T012 Implement database store methods (Create, Update, Get, List) in internal/service/store/certrotation.go
-- [ ] T013 [P] Add OpenTelemetry tracing utilities for certificate operations in internal/agent/device/certrotation/tracing.go
-- [ ] T014 [P] Add metrics definitions for renewal operations in internal/agent/instrumentation/metrics/
+- [X] T007 Apply database migration to create certificate_renewal_requests table
+- [X] T008 [P] Implement CertificateMetadata type in internal/agent/device/certrotation/types.go
+- [X] T009 [P] Implement RenewalRequest type in internal/agent/device/certrotation/types.go
+- [X] T010 [P] Implement CertRotationConfig type in internal/agent/config/config.go (completed in Phase 1)
+- [X] T011 [P] Implement CertificateRenewalRequest database entity in internal/store/certrotation.go
+- [X] T012 Implement database store methods (Create, Update, Get, List) in internal/store/certrotation.go
+- [X] T013 [P] Add OpenTelemetry tracing utilities for certificate operations in internal/agent/device/certrotation/tracing.go
+- [X] T014 [P] Add metrics definitions for renewal operations in internal/agent/instrumentation/metrics/certrotation.go
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
