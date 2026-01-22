@@ -769,3 +769,170 @@
    $ git add -u
    $ git commit
    ```
+
+## What's next?
+
+1. I prompted it with:
+
+   ```text
+   I've committed the changes. What's the next step in the speckit workflow?
+   ```
+
+   ```text
+   ● Great! With the specification artifacts now aligned and committed, you have two main paths forward in the speckit workflow:
+   
+     Option 1: Start Implementation
+   
+     /speckit.implement
+     This will execute the implementation plan by processing tasks from tasks.md. I'll work through the tasks systematically:
+     - Phase 1: Setup (T001-T003) - Verify project structure
+     - Phase 2: Foundational (T004-T012) - Build package-mode detection
+     - Phase 3-6: User Stories (T013-T040) - Implement each story independently
+     - Phase 7-8: Integration testing and polish
+   
+     Option 2: Create GitHub Issues
+   
+     /speckit.taskstoissues
+     This converts the 64 tasks in tasks.md into actionable GitHub issues with:
+     - Dependency ordering
+     - Story grouping
+     - Labels and milestones
+     - Task references
+   
+     This is useful if you want to track progress in GitHub or distribute work across a team.
+   
+     ---
+     Recommended: Start with /speckit.implement if you want to begin coding immediately. The tasks are well-defined with clear file paths and acceptance criteria. Use /speckit.taskstoissues if you need GitHub tracking
+     first or want to coordinate with other developers.
+   
+     Which path would you like to take?
+   ```
+
+   Since we're using Jira instead of GitHub issues, I asked the following
+
+   ```text
+   We have a Jira MCP server. Would it be possible to create Jira issues instead
+   of GitHub issues? (Do not make any changes, simply answer my question)
+   ```
+
+   and got the following response
+
+   ```text
+   ● Yes, it's definitely possible! I can see you have a Jira MCP server
+   configured with the following capabilities:
+   
+     Available Jira Operations:
+     - jira_createIssue - Create new issues
+     - jira_searchIssues - Search/query issues
+     - jira_getIssue - Get issue details
+     - jira_updateIssue - Update existing issues
+     - jira_postIssueComment - Add comments
+   
+     How it would work:
+   
+     Instead of using /speckit.taskstoissues (which is GitHub-specific), I could:
+   
+     1. Parse the 64 tasks from tasks.md
+     2. Use the Jira MCP createIssue function to create issues in your Jira instance
+     3. Set up proper:
+       - Parent issue (EDM-1471)
+       - Sub-tasks or linked issues for each task
+       - Labels (e.g., US1, US2, P1, P2)
+       - Story grouping
+       - Dependencies (via issue links)
+   
+     What I'd need to know:
+     - Project ID/key where issues should be created
+     - Issue type IDs (Task, Story, Sub-task, etc.)
+     - Any custom fields you want populated
+     - Whether to create all 64 as sub-tasks under EDM-1471 or as separate
+       linked issues
+   
+     This would essentially be a custom Jira-specific version of the
+     taskstoissues workflow. Would you like me to proceed with creating Jira
+     issues from your tasks.md?
+   ```
+
+   I didn't try it :) 
+
+## Start Implementation
+
+1. `/speckit.implement Phase 1`
+
+   Summary:
+
+   ```text
+   ● ✅ Phase 1: Setup - Complete!
+   
+     All Phase 1 verification tasks have been successfully completed:
+   
+     Summary of Completed Tasks:
+   
+     T001 ✅ - Verified existing agent structure matches plan.md:
+     - internal/agent/device/ - Present with expected subdirectories
+     - internal/agent/device/systeminfo/ - Manager and collectors exist
+     - internal/api/convert/v1beta1/device.go - API conversion layer exists
+     - internal/store/model/device.go - Model layer exists
+   
+     T002 ✅ - Verified Go 1.24.0 toolchain and dependencies:
+     - Go version: 1.24.0 ✓
+     - go-chi/chi v5.2.2 ✓
+     - GORM v1.25.10 ✓
+     - Ginkgo v2.21.0 ✓
+     - OpenTelemetry v1.36+ ✓
+     - gRPC middleware ✓
+   
+     T003 ✅ - Verified existing systeminfo collector pattern:
+     - Manager struct with boot tracking, collectors map
+     - Initialize() method for startup detection
+     - Status() method populating DeviceSystemInfo
+     - AdditionalProperties map ready for package-mode extension
+     - Clean logging and error handling patterns
+   
+     Project Infrastructure Verified:
+   
+     - ✅ Git repository with proper .gitignore (Go patterns present)
+     - ✅ Docker configuration with .dockerignore
+     - ✅ Makefile for build/test automation
+     - ✅ Module structure ready for package-mode implementation
+   
+     ---
+     Checkpoint Reached: Foundation ready - user story implementation can now begin
+   
+     The project structure, dependencies, and existing patterns all align with the plan.md specifications. Ready to proceed to Phase 2: Foundational for package-mode detection implementation.
+   
+     Would you like me to continue with Phase 2, or would you prefer to review the Phase 1 verification results first?
+   ```
+
+2. Examine changes
+
+   ```text
+   $ git status
+   On branch 001-package-mode-support
+   Changes not staged for commit:
+     (use "git add <file>..." to update what will be committed)
+     (use "git restore <file>..." to discard changes in working directory)
+           modified:   SPECKIT_NOTES.md
+           modified:   specs/001-package-mode-support/tasks.md
+   
+   $ git diff specs/001-package-mode-support/tasks.md
+   diff --git a/specs/001-package-mode-support/tasks.md b/specs/001-package-mode-support/tasks.md
+   index 595d75da..da7fcb10 100644
+   --- a/specs/001-package-mode-support/tasks.md
+   +++ b/specs/001-package-mode-support/tasks.md
+   @@ -45,9 +45,9 @@ description: "Task list for package-mode support implementation"
+   
+    **Purpose**: Project initialization and basic structure validation
+   
+   -- [ ] T001 Verify existing agent structure matches plan.md project structure
+   -- [ ] T002 Verify Go 1.24.0 toolchain and dependencies (go.mod matches plan requirements)
+   -- [ ] T003 [P] Verify existing systeminfo collector pattern in internal/agent/device/systeminfo/manager.go
+   +- [x] T001 Verify existing agent structure matches plan.md project structure
+   +- [x] T002 Verify Go 1.24.0 toolchain and dependencies (go.mod matches plan requirements)
+   +- [x] T003 [P] Verify existing systeminfo collector pattern in internal/agent/device/systeminfo/manager.go
+   
+    **Checkpoint**: Foundation ready - user story implementation can now begin
+   ```
+
+3. Commit the changes
+
