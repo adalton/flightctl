@@ -1,0 +1,256 @@
+# API Contract: Device Status Extension for Package Mode
+# Feature: 001-package-mode-support
+# Date: 2026-01-22
+# Type: Backward-compatible extension
+
+openapi: 3.1.0
+info:
+  title: Flight Control Device Status API - Package Mode Extension
+  description: |
+    Extension to device status API to support package-mode deployment indicator.
+    This contract extends the existing DeviceSystemInfo schema without breaking changes.
+  version: 1.0.0-package-mode
+
+paths:
+  /api/v1/devices/{deviceId}:
+    get:
+      summary: Get device details including package-mode indicator
+      parameters:
+        - name: deviceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Device details with package-mode status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+              examples:
+                packageModeDevice:
+                  summary: Package-mode device (RHEL with dnf)
+                  value:
+                    apiVersion: v1beta1
+                    kind: Device
+                    metadata:
+                      name: rhel9-edge-001
+                      labels:
+                        deployment: edge
+                    status:
+                      systemInfo:
+                        agentVersion: v0.9.0
+                        architecture: amd64
+                        bootID: e5f6g7h8-i9j0-k1l2-m3n4-o5p6q7r8s9t0
+                        operatingSystem: linux
+                        additionalProperties:
+                          packageMode: "true"
+                          osDistribution: rhel
+                          osVersion: "9.3"
+                      os:
+                        image: ""
+                        imageDigest: ""
+                      config:
+                        renderedVersion: "1234"
+
+                imageModeDevice:
+                  summary: Image-mode device (bootc-managed)
+                  value:
+                    apiVersion: v1beta1
+                    kind: Device
+                    metadata:
+                      name: fedora-iot-002
+                      labels:
+                        deployment: iot
+                    status:
+                      systemInfo:
+                        agentVersion: v0.9.0
+                        architecture: amd64
+                        bootID: a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6
+                        operatingSystem: linux
+                        additionalProperties:
+                          packageMode: "false"
+                      os:
+                        image: quay.io/flightctl/flightctl-agent-fedora
+                        imageDigest: sha256:6adcbcf1234...
+                      config:
+                        renderedVersion: "1234"
+
+components:
+  schemas:
+    Device:
+      type: object
+      properties:
+        apiVersion:
+          type: string
+          example: v1beta1
+        kind:
+          type: string
+          example: Device
+        metadata:
+          $ref: '#/components/schemas/ObjectMeta'
+        spec:
+          $ref: '#/components/schemas/DeviceSpec'
+        status:
+          $ref: '#/components/schemas/DeviceStatus'
+
+    DeviceStatus:
+      type: object
+      properties:
+        systemInfo:
+          $ref: '#/components/schemas/DeviceSystemInfo'
+        os:
+          $ref: '#/components/schemas/DeviceOsStatus'
+        config:
+          $ref: '#/components/schemas/DeviceConfigStatus'
+        applications:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeviceApplicationStatus'
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Condition'
+
+    DeviceSystemInfo:
+      type: object
+      description: |
+        System information reported by the agent.
+
+        **Package-Mode Extension**:
+        The `additionalProperties` field now includes a `packageMode` key:
+        - `"true"`: Device is package-mode (OS managed by dnf/apt)
+        - `"false"`: Device is image-mode (OS managed by bootc)
+        - (absent): Legacy agent, assume image-mode
+      properties:
+        agentVersion:
+          type: string
+          description: Agent software version
+          example: v0.9.0
+        architecture:
+          type: string
+          description: System architecture
+          example: amd64
+        bootID:
+          type: string
+          description: Unique boot identifier from /proc/sys/kernel/random/boot_id
+          example: e5f6g7h8-i9j0-k1l2-m3n4-o5p6q7r8s9t0
+        operatingSystem:
+          type: string
+          description: Operating system type
+          example: linux
+        customInfo:
+          $ref: '#/components/schemas/CustomDeviceInfo'
+        additionalProperties:
+          type: object
+          description: |
+            Extensible key-value properties. Package-mode feature adds:
+            - `packageMode`: "true" | "false"
+            - `osDistribution`: "rhel" | "ubuntu" | "fedora" (optional)
+            - `osVersion`: Distribution version (optional)
+          additionalProperties:
+            type: string
+          example:
+            packageMode: "true"
+            osDistribution: rhel
+            osVersion: "9.3"
+
+    DeviceOsStatus:
+      type: object
+      description: |
+        OS image status.
+
+        **Package-Mode Behavior**:
+        For package-mode devices, both fields are empty strings since OS is
+        not managed via image updates.
+      properties:
+        image:
+          type: string
+          description: Currently booted OS image reference (empty for package-mode)
+          example: ""
+        imageDigest:
+          type: string
+          description: Digest of booted OS image (empty for package-mode)
+          example: ""
+
+    DeviceConfigStatus:
+      type: object
+      properties:
+        renderedVersion:
+          type: string
+          description: Configuration version currently applied
+
+    DeviceApplicationStatus:
+      type: object
+      properties:
+        name:
+          type: string
+        status:
+          type: string
+
+    Condition:
+      type: object
+      properties:
+        type:
+          type: string
+        status:
+          type: string
+        lastTransitionTime:
+          type: string
+          format: date-time
+
+    ObjectMeta:
+      type: object
+      properties:
+        name:
+          type: string
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+
+    DeviceSpec:
+      type: object
+      description: Desired device configuration
+
+    CustomDeviceInfo:
+      type: object
+      description: User-defined custom information
+      additionalProperties:
+        type: string
+
+# Backward Compatibility Notes:
+#
+# 1. Schema Extension Only:
+#    - No existing fields modified or removed
+#    - additionalProperties is an existing extensibility mechanism
+#    - Older agents that don't report packageMode are assumed image-mode
+#
+# 2. API Versioning:
+#    - No version bump required (v1beta1 remains)
+#    - Extension follows OpenAPI 3.1 additionalProperties pattern
+#
+# 3. Client Compatibility:
+#    - Clients that don't check packageMode continue to work
+#    - New clients can filter/display based on packageMode presence
+#
+# 4. Database Impact:
+#    - No migration required (JSONB column auto-stores new field)
+#    - Queries can filter on additionalProperties.packageMode via PostgreSQL JSONB operators
+
+# Usage Examples:
+#
+# Filter package-mode devices (API implementation):
+#   SELECT * FROM devices
+#   WHERE status->'systemInfo'->'additionalProperties'->>'packageMode' = 'true';
+#
+# Console UI rendering logic:
+#   const mode = device.status?.systemInfo?.additionalProperties?.packageMode;
+#   if (mode === "true") {
+#     return <Badge color="blue">Package Mode</Badge>;
+#   } else if (mode === "false") {
+#     return <Badge color="green">Image Mode</Badge>;
+#   } else {
+#     return <Badge color="gray">Unknown</Badge>;
+#   }

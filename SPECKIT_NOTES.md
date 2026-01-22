@@ -148,4 +148,134 @@
    $ git commit
    ```
 
+## Begin planning EDM-1471
 
+1. `/speckit.plan`
+
+   - Invokes `.specify/scripts/bash/setup-plan.sh --json`
+   - Generates a bunch of files, I accepted everything
+   - Invokes `.specify/scripts/bash/update-agent-context.sh claude`
+   - Eventually concludes with:
+
+     ```text
+     ● Implementation Plan Complete ✅
+     
+       The planning phase for package-mode support (EDM-1471) has been successfully completed.
+     
+       Branch & Artifacts
+     
+       Branch: 001-package-mode-support
+       Plan File: /home/andalton/src/speckit.EDM1471/flightctl/specs/001-package-mode-support/plan.md
+     
+       Generated Artifacts
+     
+       Phase 0: Research ✅
+       - research.md - Bootc detection strategy, update path analysis, testing approach
+     
+       Phase 1: Design ✅
+       - data-model.md - Device status schema extension (backward compatible)
+       - contracts/device-status.yaml - OpenAPI contract for package-mode indicator
+       - quickstart.md - RHEL/Ubuntu installation and configuration guide
+       - CLAUDE.md - Updated agent context with Go 1.24, GORM, Ginkgo
+     
+       Constitution Check Results
+     
+       All gates PASSED ✅
+     
+       - ✅ Code Quality & Simplicity: Simple bootc presence check, extends existing patterns
+       - ✅ Edge Device Management: Supports mixed fleets (package + image mode)
+       - ✅ API Stability: Backward compatible, no breaking changes
+       - ✅ Test Coverage: Unit + integration tests planned (RHEL/Ubuntu runners)
+       - ✅ Security: No new auth boundaries, validates detection logic
+       - ✅ Documentation: Concise spec/plan, focused installation guides
+       - ✅ Observability: Logging, metrics for mode detection and distribution
+       - ✅ Performance & Scale: <1ms detection, scales to heterogeneous fleets
+       - ✅ Quality Gates: make lint + make unit-test + make integration-test
+     
+       Technical Approach
+     
+       Core Decision: Use existing exec.LookPath("bootc") pattern to detect deployment mode at agent startup.
+     
+       Key Modifications (3 files):
+       1. internal/agent/device/systeminfo/packagemode.go - Detection logic
+       2. internal/agent/device/systeminfo/manager.go - Cache detection result
+       3. internal/agent/device/device.go - Skip OS updates when package-mode detected
+     
+       Data Model: Add packageMode boolean to DeviceSystemInfo.additionalProperties (no schema change, backward compatible)
+     
+       File Impact Summary
+       ┌────────────┬────────────────┬──────────────────────────────────────┐
+       │  Category  │ Files Modified │            Files Created             │
+       ├────────────┼────────────────┼──────────────────────────────────────┤
+       │ Agent Code │ 2              │ 1 (packagemode.go)                   │
+       ├────────────┼────────────────┼──────────────────────────────────────┤
+       │ Data Model │ 0              │ 0 (uses additionalProperties)        │
+       ├────────────┼────────────────┼──────────────────────────────────────┤
+       │ API        │ 0              │ 1 (contract doc)                     │
+       ├────────────┼────────────────┼──────────────────────────────────────┤
+       │ Tests      │ 0              │ 3 (unit + RHEL + Ubuntu integration) │
+       ├────────────┼────────────────┼──────────────────────────────────────┤
+       │ Docs       │ 0              │ 2 (RHEL/Ubuntu install guides)       │
+       └────────────┴────────────────┴──────────────────────────────────────┘
+       Next Steps
+     
+       You can now proceed with:
+     
+       1. /speckit.tasks - Generate detailed implementation tasks organized by user story
+       2. Manual Implementation - Use research.md and data-model.md to guide development
+       3. Review Planning Artifacts - Share plan.md and contracts with team for feedback
+     ```
+
+2. Let's examine the new files:
+
+   ```text
+   $ git status
+   On branch 001-package-mode-support
+   Changes not staged for commit:
+     (use "git add <file>..." to update what will be committed)
+     (use "git restore <file>..." to discard changes in working directory)
+           modified:   SPECKIT_NOTES.md
+   
+   Untracked files:
+     (use "git add <file>..." to include in what will be committed)
+           specs/001-package-mode-support/contracts/
+           specs/001-package-mode-support/data-model.md
+           specs/001-package-mode-support/plan.md
+           specs/001-package-mode-support/quickstart.md
+           specs/001-package-mode-support/research.md
+   
+   $ find specs/001-package-mode-support/contracts/ \
+          specs/001-package-mode-support/data-model.md \
+          specs/001-package-mode-support/plan.md \
+          specs/001-package-mode-support/quickstart.md \
+          specs/001-package-mode-support/research.md -type f | xargs wc -l
+     256 specs/001-package-mode-support/contracts/device-status.yaml
+     336 specs/001-package-mode-support/data-model.md
+      99 specs/001-package-mode-support/plan.md
+     422 specs/001-package-mode-support/quickstart.md
+     345 specs/001-package-mode-support/research.md
+    1458 total
+   ```
+
+   Rendered page lengths:
+   - `specs/001-package-mode-support/data-model.md` is 3.5 pages
+   - `specs/001-package-mode-support/plan.md`       is 1.5 pages
+   - `specs/001-package-mode-support/quickstart.md` is 5   pages 
+   - `specs/001-package-mode-support/research.md`   is 4   pages
+
+3. Add new artifacts, commit changes
+
+   ```bash
+   $ git add SPECKIT_NOTES.md specs
+   $ git status
+   On branch 001-package-mode-support
+   Changes to be committed:
+     (use "git restore --staged <file>..." to unstage)
+           modified:   SPECKIT_NOTES.md
+           new file:   specs/001-package-mode-support/contracts/device-status.yaml
+           new file:   specs/001-package-mode-support/data-model.md
+           new file:   specs/001-package-mode-support/plan.md
+           new file:   specs/001-package-mode-support/quickstart.md
+           new file:   specs/001-package-mode-support/research.md
+   $ git commit
+   ```
