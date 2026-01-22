@@ -279,3 +279,26 @@
            new file:   specs/001-package-mode-support/research.md
    $ git commit
    ```
+
+## Begin defining EDM-1471 tasks
+
+1. `/speckit.tasks`
+
+   - Invokes `.specify/scripts/bash/check-prerequisites.sh --json`
+
+2. Let's examine the new files:
+
+   ```bash
+   $ wc -l specs/001-package-mode-support/tasks.md
+   345 specs/001-package-mode-support/tasks.md
+   ```
+
+   Rendered:
+   - `specs/001-package-mode-support/tasks.md` - 5 pages
+
+3. Add new artifacts, commit changes
+
+   ```bash
+   $ git add SPECKIT_NOTES.md specs/001-package-mode-support/tasks.md
+   $ git commit
+   ```
