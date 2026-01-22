@@ -115,3 +115,37 @@
      ```
 
 3. Commit the changes so far
+
+## Begin spec-ing EDM-1471
+
+1. `/speckit.specify EDM-1471` (I have a Jira MCP server, so it's able to consume that issue directly)
+   - It eventually invokes:
+     ```
+     .specify/scripts/bash/create-new-feature.sh --json --number 1 --short-name "package-mode-support" "Support Flight Control Agent on Non-Image-Mode Devices (EDM-1471)"
+     ```
+   - Promising message along the way:
+     ```
+     ● Now let me draft the specification based on the JIRA issue details. I'll create a concise spec following the Constitution VI principle:
+     ```
+   - It created a new branch, `001-package-mode-support` along the way
+
+2. Let's examine the new files:
+
+   ```bash
+   $ find specs -type f | xargs wc -l
+     149 specs/001-package-mode-support/spec.md
+      60 specs/001-package-mode-support/checklists/requirements.md
+     209 total
+   ```
+
+   Rendered, `spec.md` is 2.5 pages and `requirements.md` is 1 page.
+
+3. Add new files and commit to new branch
+
+   ```bash
+   $ git add SPECKIT_NOTES.md
+   $ git add specs/
+   $ git commit
+   ```
+
+
