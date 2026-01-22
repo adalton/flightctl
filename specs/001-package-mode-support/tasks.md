@@ -8,9 +8,18 @@ description: "Task list for package-mode support implementation"
 **Input**: Design documents from `/specs/001-package-mode-support/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: No test tasks included (not explicitly requested in specification)
+**Tests**: Unit and integration test tasks included per Constitution Principle IV (Test Coverage & Quality)
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
+
+**Functional Requirement Mapping**:
+- FR-001, FR-002: Tasks T013-T017, T045, T049 (US1 Installation)
+- FR-003, FR-004: Tasks T004-T012, T018-T024 (US2 Detection)
+- FR-005, FR-006, FR-007, FR-008: Tasks T025-T034 (US3 Update Management)
+- FR-009: Tasks T035-T040 (US4 Console Visibility)
+- FR-010: Tasks T041-T054 (Integration Testing)
+- FR-011: Tasks T013-T016 (Documentation)
+- FR-012: Task T063 (Regression Testing)
 
 ---
 

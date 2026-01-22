@@ -15,6 +15,8 @@
 
 Enable Flight Control Agent to run on package-based Linux systems (RHEL 9+, Ubuntu 22.04+) where the OS is managed via package managers (dnf/apt) rather than bootc images. Agent will automatically detect deployment mode and manage only Flight Control configurations/agent updates while ignoring OS-level package operations. Core technical approach: extend existing systeminfo detection in `internal/agent/device/systeminfo/` to identify package-mode vs image-mode environments based on bootc presence, then conditionally disable OS update management paths in agent workflow.
 
+**Key Implementation Decision** (from research.md): Modification points limited to systeminfo detection (packagemode.go, manager.go) and agent update workflow (device.go beforeUpdate/afterUpdate). No changes required to bootstrap.go, spec manager, config, or data models - existing infrastructure supports package-mode via feature flags and JSONB extensibility.
+
 ## Technical Context
 
 **Language/Version**: Go 1.24.0
@@ -67,13 +69,12 @@ flightctl/
 │   │   ├── systeminfo/                # ADD: package-mode detection
 │   │   │   ├── packagemode.go         # NEW: bootc presence check
 │   │   │   └── packagemode_test.go    # NEW: detection tests
-│   │   ├── bootstrap.go               # MODIFY: conditional update paths
-│   │   └── spec/                      # MODIFY: update handling
-│   └── config/                        # MODIFY: mode configuration
-├── internal/store/model/              # Data models (MODIFY)
-│   └── device.go                      # ADD: PackageMode boolean field
-├── internal/api/                      # API handlers (MODIFY)
-│   └── device.go                      # MODIFY: return package-mode in status
+│   │   ├── device.go                  # MODIFY: beforeUpdate(), afterUpdate() skip OS ops in package-mode
+│   │   └── device_test.go             # NEW: unit tests for package-mode update logic
+├── internal/store/model/              # Data models (NO CODE CHANGE)
+│   └── device.go                      # Status JSONB field auto-persists additionalProperties["packageMode"]
+├── internal/api/                      # API handlers (VERIFY - likely no change needed)
+│   └── device.go                      # Status endpoint already returns full JSONB, includes packageMode
 ├── test/integration/                  # Integration tests (NEW)
 │   ├── agent/
 │   │   ├── packagemode_rhel_test.go   # NEW: RHEL package-mode tests
@@ -90,7 +91,7 @@ flightctl/
         └── installing-agent-ubuntu-package-mode.md  # NEW
 ```
 
-**Structure Decision**: Monorepo modification. Extends existing agent systeminfo subsystem for mode detection. Adds package-mode boolean to device model (backward compatible database migration). No new services or binaries. Test infrastructure adds RHEL/Ubuntu runners to existing integration test framework.
+**Structure Decision**: Monorepo modification. Extends existing agent systeminfo subsystem for mode detection. Package-mode status stored in existing DeviceSystemInfo.additionalProperties (JSONB, no schema change). Modifies agent device.go update workflow to skip OS operations when package-mode detected. No new services or binaries. Test infrastructure adds RHEL/Ubuntu runners to existing integration test framework.
 
 ## Complexity Tracking
 
