@@ -26,9 +26,10 @@ import (
 )
 
 type manager struct {
-	bootID     string
-	bootTime   string
-	isRebooted bool
+	bootID      string
+	bootTime    string
+	isRebooted  bool
+	packageMode bool
 
 	exec       executer.Executer
 	readWriter fileio.ReadWriter
@@ -73,6 +74,14 @@ func (m *manager) Initialize(ctx context.Context) (err error) {
 	m.bootID, err = getBootID(m.readWriter)
 	if err != nil {
 		return err
+	}
+
+	// Detect package-mode vs image-mode deployment
+	m.packageMode = DetectPackageMode()
+	if m.packageMode {
+		m.log.Info("Package-mode detected: bootc not found")
+	} else {
+		m.log.Info("Image-mode detected: bootc client available")
 	}
 
 	previousBoot, err := getBoot(m.readWriter, m.dataDir)
@@ -198,6 +207,10 @@ func (m *manager) BootTime() string {
 	return m.bootTime
 }
 
+func (m *manager) IsPackageMode() bool {
+	return m.packageMode
+}
+
 func (m *manager) Status(ctx context.Context, deviceStatus *v1beta1.DeviceStatus, opts ...status.CollectorOpt) error {
 	collectorOpts := status.CollectorOpts{}
 	for _, opt := range opts {
@@ -219,6 +232,7 @@ func (m *manager) Status(ctx context.Context, deviceStatus *v1beta1.DeviceStatus
 	infoKeys := slices.Clone(m.infoKeys)
 	customKeys := slices.Clone(m.customKeys)
 	bootID := m.bootID
+	packageMode := m.packageMode
 	collectors := make(map[string]CollectorFn, len(m.collectors))
 	for k, v := range m.collectors {
 		collectors[k] = v
@@ -237,6 +251,7 @@ func (m *manager) Status(ctx context.Context, deviceStatus *v1beta1.DeviceStatus
 		infoKeys,
 		customKeys,
 		bootID,
+		packageMode,
 		collectors,
 		filepath.Join(dataDir, HardwareMapFileName),
 	)
@@ -300,6 +315,7 @@ func collectDeviceSystemInfo(
 	infoKeys []string,
 	customKeys []string,
 	bootID string,
+	packageMode bool,
 	collectors map[string]CollectorFn,
 	hardwareMapPath string,
 ) (v1beta1.DeviceSystemInfo, error) {
@@ -314,6 +330,14 @@ func collectDeviceSystemInfo(
 	}
 
 	systemInfoMap := getSystemInfoMap(ctx, log, info, infoKeys, collectors)
+
+	// Add package-mode indicator to additional properties
+	if packageMode {
+		systemInfoMap["packageMode"] = "true"
+	} else {
+		systemInfoMap["packageMode"] = "false"
+	}
+
 	log.Tracef("system info map: %v", systemInfoMap)
 	s := v1beta1.DeviceSystemInfo{
 		Architecture:         info.Architecture,

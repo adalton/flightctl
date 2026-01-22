@@ -59,15 +59,15 @@ description: "Task list for package-mode support implementation"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Create package-mode detection module in internal/agent/device/systeminfo/packagemode.go
-- [ ] T005 [P] Add packageMode field to systeminfo manager struct in internal/agent/device/systeminfo/manager.go
-- [ ] T006 Implement DetectPackageMode() function using exec.LookPath("bootc") in internal/agent/device/systeminfo/packagemode.go
-- [ ] T007 [P] Add IsPackageMode() accessor method to systeminfo manager in internal/agent/device/systeminfo/manager.go
-- [ ] T008 Call DetectPackageMode() in manager.Initialize() and cache result in internal/agent/device/systeminfo/manager.go
-- [ ] T009 Add INFO logging for package-mode detection in manager.Initialize() in internal/agent/device/systeminfo/manager.go
-- [ ] T010 Update systeminfo Status() method to populate additionalProperties["packageMode"] in internal/agent/device/systeminfo/manager.go
-- [ ] T011 Run `make lint` to verify packagemode.go and manager.go changes pass linting
-- [ ] T012 Run `go test -v -race ./internal/agent/device/systeminfo/...` to verify no regressions
+- [x] T004 Create package-mode detection module in internal/agent/device/systeminfo/packagemode.go
+- [x] T005 [P] Add packageMode field to systeminfo manager struct in internal/agent/device/systeminfo/manager.go
+- [x] T006 Implement DetectPackageMode() function using exec.LookPath("bootc") in internal/agent/device/systeminfo/packagemode.go
+- [x] T007 [P] Add IsPackageMode() accessor method to systeminfo manager in internal/agent/device/systeminfo/manager.go
+- [x] T008 Call DetectPackageMode() in manager.Initialize() and cache result in internal/agent/device/systeminfo/manager.go
+- [x] T009 Add INFO logging for package-mode detection in manager.Initialize() in internal/agent/device/systeminfo/manager.go
+- [x] T010 Update systeminfo Status() method to populate additionalProperties["packageMode"] in internal/agent/device/systeminfo/manager.go
+- [x] T011 Run `make lint` to verify packagemode.go and manager.go changes pass linting
+- [x] T012 Run `go test -v -race ./internal/agent/device/systeminfo/...` to verify no regressions
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 

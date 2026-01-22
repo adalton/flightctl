@@ -936,3 +936,111 @@
 
 3. Commit the changes
 
+## Continue on to Phase 2
+
+1. `/speckit.implementation Phase 2`
+
+   Summary:
+
+   ```text
+   ● ✅ Phase 2: Foundational - Complete!
+   
+     All Phase 2 tasks have been successfully completed. This phase implemented
+     the core package-mode detection infrastructure that blocks all user story
+     work.
+   
+     Summary of Completed Tasks:
+   
+     T004 ✅ - Created packagemode.go:
+     - Implemented DetectPackageMode() using exec.LookPath("bootc")
+     - Returns true for package-mode (bootc absent), false for image-mode
+       (bootc present)
+     - Comprehensive documentation explaining detection logic
+   
+     T005 ✅ - Added packageMode field to manager struct:
+     - Cached boolean field for process-lifetime constant value
+     - Positioned with other boot-related fields
+   
+     T006 ✅ - Implemented DetectPackageMode() function:
+     - Clean, simple bootc binary presence check
+     - No external dependencies beyond standard library
+     - Follows existing patterns in codebase
+   
+     T007 ✅ - Added IsPackageMode() accessor method:
+     - Public accessor for agent update workflow to query mode
+     - Consistent with existing accessor pattern (IsRebooted(), BootID(), etc.)
+   
+     T008 ✅ - Called DetectPackageMode() in Initialize():
+     - Detection runs once at agent startup
+     - Result cached in m.packageMode field
+   
+     T009 ✅ - Added INFO logging for mode detection:
+     - Logs "Package-mode detected: bootc not found" or "Image-mode detected:
+       bootc client available"
+     - Visible in agent startup logs for operators
+   
+     T010 ✅ - Updated Status() method to populate additionalProperties:
+     - Passes packageMode to collectDeviceSystemInfo()
+     - Sets additionalProperties["packageMode"] to "true" or "false"
+     - Backward-compatible JSONB extension
+   
+     T011 ✅ - Linting verification:
+     - make lint passed with 0 issues
+     - All 16 linters ran successfully (gofmt, goimports, gosec, staticcheck, etc.)
+   
+     T012 ✅ - Test verification:
+     - All 15 test suites passed
+     - Race detector found no issues
+     - Package-mode detection confirmed working in tests
+     - No regressions introduced
+   
+     Files Created/Modified:
+   
+     New Files:
+     - internal/agent/device/systeminfo/packagemode.go (21 lines)
+   
+     Modified Files:
+     - internal/agent/device/systeminfo/manager.go:
+       - Added packageMode bool field to struct
+       - Added IsPackageMode() accessor
+       - Modified Initialize() to detect and log mode
+       - Modified Status() to capture packageMode
+       - Modified collectDeviceSystemInfo() to populate additionalProperties
+   
+     ---
+     Checkpoint Reached: Foundation ready - user story implementation can now
+     begin in parallel
+   
+     The core detection infrastructure is complete, tested, and production-ready.
+     All user stories (US1-US4) can now be implemented independently as they all
+     depend on this foundational detection capability.
+   
+     Would you like me to continue with Phase 3 (User Story 1), or would you
+     prefer to commit Phase 2 first?
+   ```
+
+2. What has changed:
+
+   ```bash
+   $ git status
+   On branch 001-package-mode-support
+   Changes not staged for commit:
+     (use "git add <file>..." to update what will be committed)
+     (use "git restore <file>..." to discard changes in working directory)
+           modified:   SPECKIT_NOTES.md
+           modified:   internal/agent/device/systeminfo/manager.go
+           modified:   specs/001-package-mode-support/tasks.md
+   
+   Untracked files:
+     (use "git add <file>..." to include in what will be committed)
+           internal/agent/device/systeminfo/packagemode.go
+   
+   no changes added to commit (use "git add" and/or "git commit -a")
+   ```
+
+3. Commit the changes
+
+   ```bash
+   $ git add -A
+   $ git commit
+   ```
