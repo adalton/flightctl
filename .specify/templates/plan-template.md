@@ -31,7 +31,30 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+Verify compliance with Flight Control Constitution (v1.0.0):
+
+**I. Test-First Development**
+- [ ] TDD approach documented: Tests will be written before implementation
+- [ ] Test approval process defined: Test files submitted for review before coding begins
+- [ ] Contract tests identified for: [list new service interfaces, API changes, shared structures]
+- [ ] Integration tests scoped for: [list critical workflows, service boundaries, schema changes]
+
+**II. Code Quality & Standards**
+- [ ] Linting verified: `make lint` passes on feature branch
+- [ ] Go best practices confirmed: Error handling, import ordering, security considerations documented
+- [ ] Interface changes inventoried: [list any interface signature changes with migration plan]
+- [ ] Documentation plan: "Why" comments planned for complex logic
+
+**III. Observability**
+- [ ] Structured logging plan: Key state transitions and request tracing identified
+- [ ] Metrics plan: Request rates, error rates, resource utilization, business metrics defined
+- [ ] Tracing plan: Critical paths instrumented (if applicable)
+
+**Complexity Justifications** (complete ONLY if introducing patterns beyond standard practices):
+
+| Potential Violation | Why Needed | Simpler Alternative Rejected Because |
+|---------------------|------------|-------------------------------------|
+| [e.g., New abstraction layer] | [specific problem] | [why direct approach insufficient] |
 
 ## Project Structure
 
