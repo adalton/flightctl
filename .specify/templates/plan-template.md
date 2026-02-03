@@ -1,15 +1,19 @@
-# Implementation Plan: [FEATURE]
+# [FEATURE]
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+**Author(s)**: [Author's Name]
+**Status**: Draft | In Review | Final
+**Jira feature**: [Jira issue link]
+**Branch**: `[###-feature-name]`
+**Date**: [DATE]
+**Spec**: [link to spec.md]
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
-## Summary
+# 1. Overview
 
 [Extract from feature spec: primary requirement + technical approach from research]
 
-## Technical Context
+# 2. Technical Context
 
 <!--
   ACTION REQUIRED: Replace the content in this section with the technical details
@@ -17,17 +21,17 @@
   the iteration process.
 -->
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [single/web/mobile - determines source structure]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Language/Version**: [e.g., Go 1.22, Python 3.11 or NEEDS CLARIFICATION]
+**Primary Dependencies**: [e.g., Kubernetes client-go, gRPC or NEEDS CLARIFICATION]
+**Storage**: [if applicable, e.g., PostgreSQL, SQLite, files or N/A]
+**Testing**: [e.g., go test, pytest or NEEDS CLARIFICATION]
+**Target Platform**: [e.g., Linux server, RHEL 9+, Ubuntu 22.04+ or NEEDS CLARIFICATION]
+**Project Type**: [single/web/mobile - determines source structure]
+**Performance Goals**: [domain-specific, e.g., 1000 req/s, <100ms p95 latency or NEEDS CLARIFICATION]
+**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]
+**Scale/Scope**: [domain-specific, e.g., 10k devices, 1M requests/day or NEEDS CLARIFICATION]
 
-## Constitution Check
+# 3. Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
@@ -53,51 +57,119 @@ Verify compliance with Flight Control Constitution (v1.0.0):
 **Complexity Justifications** (complete ONLY if introducing patterns beyond standard practices):
 
 | Potential Violation | Why Needed | Simpler Alternative Rejected Because |
-|---------------------|------------|-------------------------------------|
+|---------------------|------------|--------------------------------------|
 | [e.g., New abstraction layer] | [specific problem] | [why direct approach insufficient] |
 
-## Project Structure
+# 4. Goals and Non-Goals
 
-### Documentation (this feature)
+## 4.1 Goals
+
+* [List the goals for this feature]
+
+## 4.2 Non-Goals
+
+* [List things this feature explicitly is NOT implementing]
+
+# 5. Motivation / Background
+
+[Describe the existing problem, limitations of the current system, and the rationale for this proposal.]
+
+# 6. Design
+
+## 6.1 Architecture
+
+[High-level overview, diagrams, and component responsibilities.]
+
+## 6.2 Data Model / Schema Changes
+
+[Detail any new tables, fields, constraints, or index changes.]
+
+## 6.3 API Changes
+
+[Specify new endpoints, request/response formats, and versioning impact.]
+
+## 6.4 Scalability
+
+Estimate:
+
+* Memory and CPU usage.
+
+* Expected database load (reads/writes).
+
+* Data retention and cleanup policies.
+
+* Future growth assumptions.
+
+## 6.5 Security Considerations
+
+[Cover potential vulnerabilities, authentication/authorization, data exposure risks.]
+
+## 6.6 Failure Handling and Recovery
+
+[Explain behavior under partial failure, retries, idempotency, and recovery flows.]
+
+## 6.7 RBAC / Tenancy
+
+Describe:
+
+* Role-based access rules.
+* Tenancy or org/resource isolation.
+* Visibility constraints and edge cases.
+
+## 6.8 Extensibility / Future-Proofing
+
+[Explain how the design accommodates future enhancements.]
+
+# 7. Project Structure
+
+## 7.1 Documentation (this feature)
 
 ```text
 specs/[###-feature]/
+├── spec.md              # Feature specification (/speckit.specify command output)
 ├── plan.md              # This file (/speckit.plan command output)
 ├── research.md          # Phase 0 output (/speckit.plan command)
 ├── data-model.md        # Phase 1 output (/speckit.plan command)
 ├── quickstart.md        # Phase 1 output (/speckit.plan command)
 ├── contracts/           # Phase 1 output (/speckit.plan command)
+├── checklists/          # Quality validation checklists
+│   └── requirements.md  # Spec quality checklist
 └── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
 ```
 
-### Source Code (repository root)
+## 7.2 Source Code (repository root)
+
 <!--
   ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
   for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
+  real paths (e.g., internal/agent, pkg/api). The delivered plan must not
+  include Option labels.
 -->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
-src/
-├── models/
-├── services/
-├── cli/
-└── lib/
+# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT for Flight Control)
+internal/
+├── agent/
+├── api/
+├── store/
+└── service/
 
-tests/
-├── contract/
+pkg/
+├── api/v1alpha1/
+└── client/
+
+test/
+├── e2e/
 ├── integration/
 └── unit/
 
 # [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
 backend/
-├── src/
+├── internal/
 │   ├── models/
-│   ├── services/
+│   ├── service/
 │   └── api/
-└── tests/
+└── test/
 
 frontend/
 ├── src/
@@ -114,14 +186,35 @@ ios/ or android/
 └── [platform-specific structure: feature modules, UI flows, platform tests]
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: [Document the selected structure and reference the real directories captured above]
 
-## Complexity Tracking
+# 8. Alternatives Considered
+
+[Briefly explain other approaches evaluated and why they were not selected.]
+
+# 9. Observability and Monitoring
+
+[List new metrics, events, and alerts.]
+
+# 10. Impact and Compatibility
+
+Note any:
+
+* Backward-incompatible changes.
+* DB migration impacts.
+* Changes to existing APIs or workflows.
+
+# 11. Open Questions
+
+* [List any open questions]
+
+---
+
+## Appendix: Complexity Tracking
 
 > **Fill ONLY if Constitution Check has violations that must be justified**
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
+|-----------|------------|--------------------------------------|
 | [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
 | [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
