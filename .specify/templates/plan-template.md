@@ -9,11 +9,11 @@
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
-# 1. Overview
+## 1. Overview
 
 [Extract from feature spec: primary requirement + technical approach from research]
 
-# 2. Technical Context
+## 2. Technical Context
 
 <!--
   ACTION REQUIRED: Replace the content in this section with the technical details
@@ -31,25 +31,28 @@
 **Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]
 **Scale/Scope**: [domain-specific, e.g., 10k devices, 1M requests/day or NEEDS CLARIFICATION]
 
-# 3. Constitution Check
+## 3. Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
 Verify compliance with Flight Control Constitution (v1.0.0):
 
-**I. Test-First Development**
+### I. Test-First Development
+
 - [ ] TDD approach documented: Tests will be written before implementation
 - [ ] Test approval process defined: Test files submitted for review before coding begins
 - [ ] Contract tests identified for: [list new service interfaces, API changes, shared structures]
 - [ ] Integration tests scoped for: [list critical workflows, service boundaries, schema changes]
 
-**II. Code Quality & Standards**
+### II. Code Quality & Standards
+
 - [ ] Linting verified: `make lint` passes on feature branch
 - [ ] Go best practices confirmed: Error handling, import ordering, security considerations documented
 - [ ] Interface changes inventoried: [list any interface signature changes with migration plan]
 - [ ] Documentation plan: "Why" comments planned for complex logic
 
-**III. Observability**
+### III. Observability
+
 - [ ] Structured logging plan: Key state transitions and request tracing identified
 - [ ] Metrics plan: Request rates, error rates, resource utilization, business metrics defined
 - [ ] Tracing plan: Critical paths instrumented (if applicable)
@@ -60,7 +63,7 @@ Verify compliance with Flight Control Constitution (v1.0.0):
 |---------------------|------------|--------------------------------------|
 | [e.g., New abstraction layer] | [specific problem] | [why direct approach insufficient] |
 
-# 4. Goals and Non-Goals
+## 4. Goals and Non-Goals
 
 ## 4.1 Goals
 
@@ -70,11 +73,11 @@ Verify compliance with Flight Control Constitution (v1.0.0):
 
 * [List things this feature explicitly is NOT implementing]
 
-# 5. Motivation / Background
+## 5. Motivation / Background
 
 [Describe the existing problem, limitations of the current system, and the rationale for this proposal.]
 
-# 6. Design
+## 6. Design
 
 ## 6.1 Architecture
 
@@ -120,7 +123,7 @@ Describe:
 
 [Explain how the design accommodates future enhancements.]
 
-# 7. Project Structure
+## 7. Project Structure
 
 ## 7.1 Documentation (this feature)
 
@@ -188,15 +191,15 @@ ios/ or android/
 
 **Structure Decision**: [Document the selected structure and reference the real directories captured above]
 
-# 8. Alternatives Considered
+## 8. Alternatives Considered
 
 [Briefly explain other approaches evaluated and why they were not selected.]
 
-# 9. Observability and Monitoring
+## 9. Observability and Monitoring
 
 [List new metrics, events, and alerts.]
 
-# 10. Impact and Compatibility
+## 10. Impact and Compatibility
 
 Note any:
 
@@ -204,7 +207,7 @@ Note any:
 * DB migration impacts.
 * Changes to existing APIs or workflows.
 
-# 11. Open Questions
+## 11. Open Questions
 
 * [List any open questions]
 
