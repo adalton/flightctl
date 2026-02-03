@@ -154,36 +154,39 @@ This architecture diagram illustrates how the agent detects its deployment envir
 
 ```mermaid
 graph TB
-    subgraph "Flight Control Server"
+    subgraph Server["Flight Control Server"]
         API[Management API<br/>DeviceStatus with<br/>deploymentMode]
     end
 
-    subgraph "Flight Control Agent"
+    subgraph Agent["Flight Control Agent"]
         SM[SystemInfo Manager<br/>- Detect deployment mode<br/>- Read /etc/os-release]
         Factory[OS Client Factory]
+        BC[Bootc Client<br/>Reports: image/digest<br/>Updates: OS via bootc]
+        RC[RPM-OSTree Client<br/>Reports: image/digest<br/>Updates: OS via rpm-ostree]
+        PC[Package Mode Client<br/>Reports: empty image<br/>Updates: Ignores OS]
 
         SM -->|Creates| Factory
-        Factory -->|Select based on<br/>binary detection| Clients
-
-        subgraph Clients[OS Clients]
-            BC[Bootc Client<br/>Reports: image/digest<br/>Updates: OS via bootc]
-            RC[RPM-OSTree Client<br/>Reports: image/digest<br/>Updates: OS via rpm-ostree]
-            PC[Package Mode Client<br/>Reports: empty image<br/>Updates: Ignores OS]
-        end
+        Factory -->|Select based on<br/>binary detection| BC
+        Factory -->|Select based on<br/>binary detection| RC
+        Factory -->|Select based on<br/>binary detection| PC
     end
 
-    subgraph "Device Environment"
-        BOOTC[/bootc binary/]
-        RPMOSTREE[/rpm-ostree binary/]
-        OSRELEASE[/etc/os-release]
+    subgraph Env["Device Environment"]
+        BOOTC[(bootc binary)]
+        RPMOSTREE[(rpm-ostree binary)]
+        OSRELEASE[(etc/os-release)]
     end
 
     Factory -.->|Check exists| BOOTC
     Factory -.->|Check exists| RPMOSTREE
     SM -.->|Parse| OSRELEASE
 
-    Clients -->|Status updates| API
-    API -.->|Device spec| Clients
+    BC -->|Status updates| API
+    RC -->|Status updates| API
+    PC -->|Status updates| API
+    API -.->|Device spec| BC
+    API -.->|Device spec| RC
+    API -.->|Device spec| PC
 
     style BC fill:#90EE90
     style RC fill:#87CEEB
@@ -269,38 +272,30 @@ stateDiagram-v2
     Package --> ReportingPackage: Status()
     Unknown --> ReportingUnknown: Status()
 
-    state ReportingBootc {
-        [*] --> ImagePopulated
-        ImagePopulated: image: "quay.io/..."
-        ImagePopulated: imageDigest: "sha256:..."
-        ImagePopulated: deploymentMode: "bootc"
-    }
-
-    state ReportingRpmOstree {
-        [*] --> ImagePopulated2
-        ImagePopulated2: image: "ostree://..."
-        ImagePopulated2: imageDigest: "..."
-        ImagePopulated2: deploymentMode: "rpm-ostree"
-    }
-
-    state ReportingPackage {
-        [*] --> ImageEmpty
-        ImageEmpty: image: ""
-        ImageEmpty: imageDigest: ""
-        ImageEmpty: deploymentMode: "package"
-    }
-
-    state ReportingUnknown {
-        [*] --> ImageEmpty2
-        ImageEmpty2: image: ""
-        ImageEmpty2: imageDigest: ""
-        ImageEmpty2: deploymentMode: "unknown"
-    }
-
     ReportingBootc --> [*]
     ReportingRpmOstree --> [*]
     ReportingPackage --> [*]
     ReportingUnknown --> [*]
+
+    note right of ReportingBootc
+        Reports populated image fields
+        deploymentMode = bootc
+    end note
+
+    note right of ReportingRpmOstree
+        Reports populated image fields
+        deploymentMode = rpm-ostree
+    end note
+
+    note right of ReportingPackage
+        Reports empty image fields
+        deploymentMode = package
+    end note
+
+    note right of ReportingUnknown
+        Reports empty image fields
+        deploymentMode = unknown
+    end note
 ```
 
 **State transition rules:**
