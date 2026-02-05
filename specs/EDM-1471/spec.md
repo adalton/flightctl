@@ -82,6 +82,10 @@ As a Flight Control operator, I want to see which devices are running in image-m
 - What happens if Flight Control attempts to deploy an image-mode-only feature to a package-mode device?
 - How does the agent handle partial installations or corrupted agent packages?
 - What happens when the agent runs on an unsupported Linux distribution (neither RHEL nor Ubuntu)?
+- How should fleet-level policies be defined when a fleet contains both image-mode and package-mode devices?
+- Should the API allow creating a fleet that explicitly supports only one deployment mode?
+- What validation should occur when assigning a device to a fleet with incompatible deployment mode requirements?
+- How should alerts and monitoring handle differences in update behavior between deployment modes?
 
 ## Requirements *(mandatory)*
 
@@ -101,7 +105,7 @@ As a Flight Control operator, I want to see which devices are running in image-m
 - **FR-012**: Flight Control UI MUST display OS type for non-image-mode devices
 - **FR-013**: Agent installation MUST satisfy all required dependencies on both RHEL and Ubuntu platforms
 - **FR-014**: Agent service MUST start successfully after installation on both RHEL and Ubuntu systems
-- **FR-015**: Agent MUST handle scenarios where it cannot determine deployment mode by reporting an error state rather than making incorrect assumptions
+- **FR-015**: Agent MUST handle scenarios where it cannot determine deployment mode by entering an internal error state and reporting diagnostic information, rather than making incorrect assumptions about the deployment mode. This is a defensive error-handling mechanism, not a third deployment mode option.
 
 ### Key Entities
 
@@ -162,6 +166,5 @@ As a Flight Control operator, I want to see which devices are running in image-m
 - Support for Linux distributions beyond RHEL and Ubuntu: Other distributions are not part of this feature
 - Changes to image-mode functionality: Existing bootc image-based deployment behavior remains unchanged
 - Backward compatibility breaking changes: Existing image-mode deployments must continue to work without modification
-- Automatic migration of image-mode devices to package-mode or vice versa
 - Managing non-Flight Control applications or system services
 - Custom Linux distributions or embedded systems beyond RHEL and Ubuntu

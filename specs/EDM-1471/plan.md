@@ -13,6 +13,8 @@
 
 This feature extends Flight Control agent support to traditional package-managed Linux systems (RHEL with dnf/yum, Ubuntu with apt), enabling device enrollment and configuration management without requiring bootc image-based deployments. The agent will detect its deployment environment (image-mode vs package-mode), report deployment mode and OS type through the API, and adapt its behavior to avoid interfering with system package managers.
 
+**Design Assumption**: This plan assumes that mixed-mode fleets (fleets containing both image-mode and package-mode devices) are supported. This assumption is revisited in Section 11 (Open Questions) for stakeholder discussion.
+
 Technical approach: Enhance the existing OS client factory pattern to recognize package-mode environments, extend the DeviceSystemInfo API schema with deployment mode and OS type fields, and ensure the agent gracefully handles OS-level update requests by ignoring them in package-mode.
 
 ## 2. Technical Context
@@ -132,7 +134,6 @@ Verify compliance with Flight Control Constitution (v1.0.0):
 * Managing OS-level package updates via Flight Control (remains with system package managers)
 * Creating .deb packages for Ubuntu (installation via alternative method acceptable in this phase)
 * Supporting Linux distributions beyond RHEL and Ubuntu
-* Automatic migration between deployment modes (image-mode ↔ package-mode)
 * Managing non-Flight Control system services or packages
 * Breaking changes to existing Device API or agent behavior
 
@@ -187,10 +188,6 @@ graph TB
     API -.->|Device spec| BC
     API -.->|Device spec| RC
     API -.->|Device spec| PC
-
-    style BC fill:#90EE90
-    style RC fill:#87CEEB
-    style PC fill:#FFB6C1
 ```
 
 **Key architectural points:**
@@ -804,10 +801,6 @@ graph LR
     M1 --> D1
     M2 --> D2
     M3 --> D3
-
-    style D1 fill:#90EE90
-    style D2 fill:#FFB6C1
-    style D3 fill:#87CEEB
 ```
 
 ## Logging
@@ -939,6 +932,57 @@ gantt
   * **Impact**: API query complexity, UI filtering features
   * **Decision needed by**: Post-MVP (track separately)
   * **Recommendation**: Out of scope for EDM-1471, track as enhancement
+
+### Mixed Device Fleets
+
+**Question**: Should a single Flight Control fleet support both image-mode and package-mode devices simultaneously?
+
+**Current Plan Assumption**: Section 1 assumes mixed-mode fleets are supported. This assumption appears throughout the plan (line 64 scale requirements, line 84 constitution checklist, spec.md user stories).
+
+**Arguments For**:
+- Operational flexibility: Organizations can manage heterogeneous environments in a unified way
+- Migration support: Enables gradual transitions between deployment models within a fleet
+- Real-world scenarios: Many organizations have mixed infrastructure and want unified management
+- Simpler mental model: Operators don't need to think about fleet-level deployment mode constraints
+
+**Arguments Against (Potential Footguns)**:
+- Configuration complexity: Fleet-level policies may not apply cleanly to both modes (e.g., OS update policies meaningless for package-mode)
+- Update semantics differ: Image-mode uses atomic updates; package-mode uses incremental updates. Same configuration could behave differently.
+- Operator confusion: Different devices in the same fleet behaving differently could be surprising and lead to misdiagnosis
+- Testing burden: Every fleet-level feature must be validated against both modes, doubling test matrix
+- API validation complexity: Hard to enforce mode-specific constraints at the fleet level
+
+**Decision Required**:
+- If mixed fleets are **allowed**: Current plan proceeds as-is
+- If mixed fleets are **prohibited**: Need API validation to prevent assigning incompatible devices to the same fleet, documentation updates, and removal of mixed-mode test scenarios (line 84)
+
+**Impact if Decision Changes**: Medium. Would require removing mixed-mode assumptions from testing strategy, potentially adding fleet-level deployment mode field, and updating user stories.
+
+### Unknown Deployment Mode Handling
+
+**Question**: Should users ever see an "unknown" deployment mode, or should this always result in an error state that blocks device operation?
+
+**Current Plan Position**:
+- FR-015 (spec.md:104): Agent reports an error state internally rather than making assumptions
+- plan.md line 270-274: "Unknown" is a valid state in the deployment mode state machine
+- plan.md line 563-567: Unknown mode falls back to package-mode safe defaults
+
+**Clarification**: The "unknown" state is an **internal error-handling mechanism**, not a third deployment mode option for users to select. It occurs when environment detection fails (e.g., corrupted /etc/os-release, ambiguous binary detection).
+
+**Options**:
+1. **Expose "unknown" in UI** (current plan): Users see devices in unknown state, can investigate/troubleshoot
+   - Pro: Transparency, enables debugging
+   - Con: May confuse users, looks like a supported mode
+2. **Block enrollment/operation**: Devices in unknown state cannot enroll or report status
+   - Pro: Forces resolution before device is managed
+   - Con: May be too strict for edge cases, reduces availability
+3. **Hide from users, log internally**: UI shows "error" instead of "unknown mode"
+   - Pro: Clearer UX (error vs mode)
+   - Con: Less transparency for troubleshooting
+
+**Decision Needed**: Which option aligns with Flight Control's error handling philosophy?
+
+**Recommendation**: Option 1 (expose as unknown) with clear documentation that this is an error state requiring investigation, not a supported deployment mode. Add troubleshooting guide for resolving unknown states.
 
 ---
 
